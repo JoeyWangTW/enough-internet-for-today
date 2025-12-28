@@ -1,7 +1,7 @@
 {
-  "name": "toxic-blocker",
+  "name": "enough-internet-for-today",
   "version": "1.0.0",
-  "description": "Chrome extension that blocks toxic content using keyword filtering and LLM-powered analysis via OpenRouter",
+  "description": "Chrome extension for web content filtering using keywords, Simplified Chinese detection, and AI-powered analysis via Groq",
   "type": "module",
   "scripts": {
     "dev": "vite build --watch --mode development",
@@ -10,10 +10,10 @@
   },
   "keywords": [
     "chrome-extension",
-    "toxicity-detection",
     "content-filtering",
+    "web-filter",
     "llm",
-    "openrouter"
+    "groq"
   ],
   "author": "",
   "license": "MIT",

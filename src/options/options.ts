@@ -25,6 +25,9 @@ const saveStatus = document.getElementById('save-status') as HTMLDivElement;
 // Current settings
 let currentSettings: Settings = DEFAULT_SETTINGS;
 
+// Debounce timer for auto-save
+let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+
 /**
  * Update filter settings visibility based on enabled state
  */
@@ -131,7 +134,7 @@ function addDomain(): void {
   currentSettings.enabledDomains.push(domain);
   newDomainInput.value = '';
   renderDomains();
-  showSaveStatus('Domain added (remember to save)', 'success');
+  autoSave(true);
 }
 
 /**
@@ -140,7 +143,7 @@ function addDomain(): void {
 function removeDomain(domain: string): void {
   currentSettings.enabledDomains = currentSettings.enabledDomains.filter((d) => d !== domain);
   renderDomains();
-  showSaveStatus('Domain removed (remember to save)', 'success');
+  autoSave(true);
 }
 
 /**
@@ -195,30 +198,43 @@ async function testApi(): Promise<void> {
 }
 
 /**
- * Save settings to storage
+ * Collect current form values into settings object
  */
-async function handleSave(): Promise<void> {
-  saveButton.disabled = true;
-  saveButton.textContent = 'Saving...';
+function collectFormValues(): void {
+  currentSettings.keywordFilterEnabled = keywordFilterEnabled.checked;
+  currentSettings.keywords = keywordsTextarea.value.trim();
+  currentSettings.simplifiedChineseFilterEnabled = simplifiedChineseFilterEnabled.checked;
+  currentSettings.aiFilterEnabled = aiFilterEnabled.checked;
+  currentSettings.filterDescription = filterDescriptionInput.value.trim() || DEFAULT_SETTINGS.filterDescription;
+  currentSettings.groqApiKey = groqKeyInput.value.trim();
+  currentSettings.selectedModel = modelInput.value.trim() || DEFAULT_SETTINGS.selectedModel;
+  currentSettings.allowReveal = allowRevealInput.checked;
+}
 
-  try {
-    // Update settings with current form values
-    currentSettings.keywordFilterEnabled = keywordFilterEnabled.checked;
-    currentSettings.keywords = keywordsTextarea.value.trim();
-    currentSettings.simplifiedChineseFilterEnabled = simplifiedChineseFilterEnabled.checked;
-    currentSettings.aiFilterEnabled = aiFilterEnabled.checked;
-    currentSettings.filterDescription = filterDescriptionInput.value.trim() || DEFAULT_SETTINGS.filterDescription;
-    currentSettings.groqApiKey = groqKeyInput.value.trim();
-    currentSettings.selectedModel = modelInput.value.trim() || DEFAULT_SETTINGS.selectedModel;
-    currentSettings.allowReveal = allowRevealInput.checked;
+/**
+ * Auto-save settings with debounce
+ */
+function autoSave(immediate = false): void {
+  // Clear any pending save
+  if (saveTimeout) {
+    clearTimeout(saveTimeout);
+  }
 
-    await saveSettings(currentSettings);
-    showSaveStatus('Settings saved successfully!', 'success');
-  } catch (error) {
-    showSaveStatus(`Save failed: ${String(error)}`, 'error');
-  } finally {
-    saveButton.disabled = false;
-    saveButton.textContent = 'Save Settings';
+  const doSave = async () => {
+    try {
+      collectFormValues();
+      await saveSettings(currentSettings);
+      showSaveStatus('Saved', 'success');
+    } catch (error) {
+      showSaveStatus(`Save failed: ${String(error)}`, 'error');
+    }
+  };
+
+  if (immediate) {
+    doSave();
+  } else {
+    // Debounce text inputs by 500ms
+    saveTimeout = setTimeout(doSave, 500);
   }
 }
 
@@ -232,19 +248,41 @@ function showSaveStatus(message: string, type: 'success' | 'error'): void {
   setTimeout(() => {
     saveStatus.textContent = '';
     saveStatus.className = 'save-status';
-  }, 3000);
+  }, type === 'success' ? 1500 : 3000);
 }
 
-// Event listeners
-keywordFilterEnabled.addEventListener('change', updateFilterStates);
-aiFilterEnabled.addEventListener('change', updateFilterStates);
-keywordsTextarea.addEventListener('input', updateKeywordCount);
+// Event listeners - toggles save immediately
+keywordFilterEnabled.addEventListener('change', () => {
+  updateFilterStates();
+  autoSave(true);
+});
+aiFilterEnabled.addEventListener('change', () => {
+  updateFilterStates();
+  autoSave(true);
+});
+simplifiedChineseFilterEnabled.addEventListener('change', () => autoSave(true));
+allowRevealInput.addEventListener('change', () => autoSave(true));
+
+// Text inputs - debounced save
+keywordsTextarea.addEventListener('input', () => {
+  updateKeywordCount();
+  autoSave();
+});
+filterDescriptionInput.addEventListener('input', () => autoSave());
+groqKeyInput.addEventListener('input', () => autoSave());
+modelInput.addEventListener('input', () => autoSave());
+
+// Domain management
 addDomainButton.addEventListener('click', addDomain);
 newDomainInput.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') addDomain();
 });
+
+// API test
 testApiButton.addEventListener('click', testApi);
-saveButton.addEventListener('click', handleSave);
+
+// Hide save button since we auto-save
+saveButton.style.display = 'none';
 
 // Initialize
 loadSettings();
