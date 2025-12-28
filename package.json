@@ -1,0 +1,26 @@
+{
+  "name": "toxic-blocker",
+  "version": "1.0.0",
+  "description": "Chrome extension that blocks toxic content using keyword filtering and LLM-powered analysis via OpenRouter",
+  "type": "module",
+  "scripts": {
+    "dev": "vite build --watch --mode development",
+    "build": "vite build",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "chrome-extension",
+    "toxicity-detection",
+    "content-filtering",
+    "llm",
+    "openrouter"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/chrome": "^0.0.278",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11",
+    "vite-plugin-web-extension": "^4.1.6"
+  }
+}

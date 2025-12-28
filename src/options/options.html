@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Content Filter - Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Content Filter</h1>
+      <p>Two-layer content filtering: Keywords + AI. You decide what to block.</p>
+    </header>
+
+    <main>
+      <!-- Layer 1: Keyword Filter -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2>Layer 1: Keyword Filter</h2>
+            <p class="description">Fast, local filtering. Content containing these keywords will be blocked immediately without using AI.</p>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="keyword-filter-enabled">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div class="form-group" id="keyword-settings">
+          <label for="keywords">
+            Keywords (comma-separated)
+          </label>
+          <textarea id="keywords" placeholder="hate, toxic, kill, die, stupid, idiot"></textarea>
+          <div class="keyword-count" id="keyword-count">0 keywords configured</div>
+        </div>
+      </section>
+
+      <!-- Layer 2: AI Filter (Groq) -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2>Layer 2: AI Filter (Groq)</h2>
+            <p class="description">
+              Ultra-fast AI-powered content detection with low latency. Only runs if keyword filter passes.
+              <a href="https://console.groq.com/keys" target="_blank" class="help-link">Get Groq API key</a>
+            </p>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="ai-filter-enabled">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <div id="ai-settings">
+        <div class="form-group">
+          <label for="filter-description">
+            Content to Filter
+          </label>
+          <input type="text" id="filter-description" placeholder="toxic or hate speech content">
+          <div class="help-text">Describe what you want to block (e.g., "toxic or hate speech content", "political arguments", "spoilers", "negative or depressing content")</div>
+        </div>
+
+        <div class="form-group">
+          <label for="groq-key">
+            Groq API Key
+          </label>
+          <div class="input-with-status">
+            <input type="password" id="groq-key" placeholder="gsk_...">
+            <span class="status-icon" id="api-status"></span>
+          </div>
+          <div class="help-text">Leave empty to use keyword filtering only (no AI costs)</div>
+        </div>
+
+        <div class="form-group">
+          <label for="model">
+            Model
+            <a href="https://console.groq.com/docs/models" target="_blank" class="help-link">(Browse models)</a>
+          </label>
+          <input type="text" id="model" placeholder="llama-3.3-70b-versatile">
+          <div class="help-text">Groq models: llama-3.3-70b-versatile (best), llama-3.1-8b-instant (fastest), mixtral-8x7b-32768</div>
+        </div>
+
+        <button id="test-api" class="secondary-btn">Test API Connection</button>
+        </div>
+      </section>
+
+      <!-- Block Behavior -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2>Allow Reveal</h2>
+            <p class="description">Show a "Show" button on blocked content so you can reveal it if needed.</p>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="allow-reveal">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Domain Whitelist -->
+      <section class="card">
+        <h2>Enabled Websites</h2>
+        <p class="description">
+          The extension only runs on these websites. Add any website where you want content filtered.
+          Remove a site to disable filtering there.
+        </p>
+
+        <div id="domains-list" class="domains-list">
+          <!-- Populated dynamically -->
+        </div>
+
+        <div class="add-domain-form">
+          <input type="text" id="new-domain" placeholder="example.com">
+          <button id="add-domain" class="secondary-btn">Add Website</button>
+        </div>
+      </section>
+
+      <!-- Save Button -->
+      <div class="actions">
+        <button id="save" class="primary-btn">Save Settings</button>
+        <div id="save-status" class="save-status"></div>
+      </div>
+    </main>
+
+    <footer>
+      <p>
+        <strong>How it works:</strong> The extension only runs on websites in your Enabled Websites list.
+        Keywords are checked first (free, instant). If no keyword match, AI analyzes the content.
+      </p>
+      <p>
+        <strong>Privacy:</strong> API key stored locally on your device only.
+        Text is sent to Groq for AI analysis (when AI filter is enabled).
+      </p>
+      <p>
+        <a href="https://console.groq.com/keys" target="_blank">Get API Key</a> •
+        <a href="https://console.groq.com/docs/models" target="_blank">Browse Models</a> •
+        <a href="https://console.groq.com/docs" target="_blank">Groq Docs</a>
+      </p>
+    </footer>
+  </div>
+
+  <script type="module" src="options.ts"></script>
+</body>
+</html>
