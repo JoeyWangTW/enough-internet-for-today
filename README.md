@@ -1,15 +1,16 @@
-# Toxic Content Blocker
+# Enough Internet for Today
 
-A Chrome extension that blocks toxic content using a two-layer filtering system: fast keyword matching and AI-powered analysis via OpenRouter.
+A Chrome extension for web content filtering using keywords, Simplified Chinese detection, and AI-powered analysis via Groq.
 
 ## Features
 
 - **Two-Layer Filtering:**
-  - **Layer 1 (Keywords):** Instant, local filtering with no API calls. Free to use.
-  - **Layer 2 (AI):** OpenRouter-powered toxicity detection for nuanced content.
+  - **Layer 1 (Keywords):** Instant, local filtering with comma-separated keywords. Free to use.
+  - **Layer 1 (Simplified Chinese):** Detect and block Simplified Chinese content while allowing Traditional Chinese.
+  - **Layer 2 (AI):** Groq-powered content detection for nuanced filtering with ultra-low latency.
 - **Works on Any Website:** Enable filtering on any site you choose.
-- **"Show Anyway" Button:** Reveal blocked content with one click.
-- **Multiple AI Models:** Choose from GPT-4, Claude, Gemini, Llama, and more via OpenRouter.
+- **"Show" Button:** Optionally reveal blocked content with one click.
+- **Auto-Save:** Settings save automatically as you make changes.
 - **Privacy-Focused:** API keys stored locally on your device only.
 
 ## Quick Start
@@ -18,8 +19,8 @@ A Chrome extension that blocks toxic content using a two-layer filtering system:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/toxic-blocker.git
-cd toxic-blocker
+git clone https://github.com/JoeyWangTW/internet-filter.git
+cd internet-filter
 
 # Install dependencies
 npm install
@@ -37,9 +38,7 @@ npm run build
 
 ### 3. Configure the Extension
 
-After loading, the options page will open automatically. You can also access it by:
-- Right-clicking the extension icon → **Options**
-- Or navigating to `chrome://extensions/` → **Toxic Content Blocker** → **Details** → **Extension options**
+After loading, the options page will open automatically. You can also access it by clicking the extension icon in the toolbar.
 
 ## Configuration
 
@@ -54,37 +53,45 @@ hate, toxic, kill, die, stupid, idiot, loser
 - Keywords are case-insensitive
 - Content containing any keyword is blocked immediately
 - No API calls = no cost
-- Leave empty to disable keyword filtering
+
+### Layer 1: Simplified Chinese Filter (Free)
+
+Toggle to detect and block content written in Simplified Chinese. Traditional Chinese content passes through.
+
+- Uses character variant detection (opencc-js)
+- Requires at least 3 Chinese characters to trigger
+- No API calls = no cost
 
 ### Layer 2: AI Filter (Optional)
 
-For nuanced toxicity detection, configure the AI filter:
+For nuanced content detection, configure the AI filter:
 
-1. **Get an OpenRouter API Key:**
-   - Go to [openrouter.ai/keys](https://openrouter.ai/keys)
+1. **Get a Groq API Key:**
+   - Go to [console.groq.com/keys](https://console.groq.com/keys)
    - Create an account and generate an API key
-   - Copy the key (starts with `sk-or-...`)
+   - Copy the key (starts with `gsk_...`)
 
 2. **Enter the API Key** in the extension options
 
-3. **Enter a Model ID:**
-   - Browse models at [openrouter.ai/models](https://openrouter.ai/models)
-   - Copy any model ID and paste it (e.g., `google/gemini-flash-1.5`)
-   - Popular options:
-     - `google/gemini-flash-1.5` - Cheapest, good for high volume
-     - `openai/gpt-4o-mini` - Good balance of cost and accuracy
-     - `anthropic/claude-3.5-haiku` - Fast and accurate
-     - `meta-llama/llama-3.1-8b-instruct` - Very fast
+3. **Describe What to Filter:**
+   - Enter a description like "toxic or hate speech content"
+   - Or "political arguments", "spoilers", "negative content"
 
-4. **Click "Test API Connection"** to verify it works
+4. **Select a Model:**
+   - `llama-3.3-70b-versatile` - Best accuracy (default)
+   - `llama-3.1-8b-instant` - Fastest
+   - `mixtral-8x7b-32768` - Good balance
+
+5. **Click "Test API Connection"** to verify it works
 
 ### Enabled Websites
 
-The extension only runs on websites in this list. By default, it includes:
+The extension only runs on websites in this list. By default:
 - twitter.com / x.com
 - reddit.com
 - instagram.com
 - facebook.com
+- threads.com
 
 **To add a website:** Enter the domain (e.g., `youtube.com`) and click **Add Website**
 
@@ -105,47 +112,57 @@ Content Detected on Page
       │ No        │ Yes
       ▼           ▼
    [Skip]    ┌────────────────┐
-             │ Layer 1:       │
+             │ Layer 1a:      │
              │ Keyword Match? │
              └───────┬────────┘
                      │
                ┌─────┴─────┐
                │ Yes       │ No
                ▼           ▼
-            [BLOCK]   ┌────────────────┐
-                      │ Layer 2:       │
-                      │ AI Configured? │
-                      └───────┬────────┘
+            [BLOCK]   ┌─────────────────────┐
+                      │ Layer 1b:           │
+                      │ Simplified Chinese? │
+                      └───────┬─────────────┘
                               │
                         ┌─────┴─────┐
                         │ Yes       │ No
                         ▼           ▼
-                   ┌─────────┐   [SHOW]
-                   │ AI says │
-                   │ toxic?  │
-                   └────┬────┘
-                        │
-                  ┌─────┴─────┐
-                  │ Yes       │ No
-                  ▼           ▼
-               [BLOCK]     [SHOW]
+                     [BLOCK]   ┌────────────────┐
+                               │ Layer 2:       │
+                               │ AI Configured? │
+                               └───────┬────────┘
+                                       │
+                                 ┌─────┴─────┐
+                                 │ Yes       │ No
+                                 ▼           ▼
+                            ┌─────────┐   [SHOW]
+                            │ AI says │
+                            │ block?  │
+                            └────┬────┘
+                                 │
+                           ┌─────┴─────┐
+                           │ Yes       │ No
+                           ▼           ▼
+                        [BLOCK]     [SHOW]
 ```
 
 ## Cost Estimates
 
-### Keyword Filter (Layer 1)
-- **Cost:** $0.00 (runs locally)
+### Layer 1 Filters
+- **Keywords:** $0.00 (runs locally)
+- **Simplified Chinese:** $0.00 (runs locally)
 
-### AI Filter (Layer 2) via OpenRouter
+### Layer 2: AI Filter via Groq
 
-| Model ID | Cost per 1K requests | Monthly (500/day) |
-|----------|---------------------|-------------------|
-| `google/gemini-flash-1.5` | ~$0.08 | ~$1.20 |
-| `openai/gpt-4o-mini` | ~$0.15 | ~$2.25 |
-| `anthropic/claude-3.5-haiku` | ~$0.25 | ~$3.75 |
-| `meta-llama/llama-3.1-8b-instruct` | ~$0.05 | ~$0.75 |
+Groq offers generous free tier with rate limits. For heavy usage:
 
-**Tip:** Use keywords to catch obvious toxic content for free, and let AI handle the rest.
+| Model | Speed | Quality |
+|-------|-------|---------|
+| `llama-3.3-70b-versatile` | Fast | Best |
+| `llama-3.1-8b-instant` | Fastest | Good |
+| `mixtral-8x7b-32768` | Fast | Good |
+
+**Tip:** Use keywords and Simplified Chinese filter to catch obvious content for free, and let AI handle the nuanced cases.
 
 ## Development
 
@@ -166,15 +183,15 @@ npm run type-check
 ### Project Structure
 
 ```
-toxic-blocker/
+enough-internet-for-today/
 ├── src/
-│   ├── background.ts      # Service worker: two-layer filtering logic
+│   ├── background.ts      # Service worker: filtering logic
 │   ├── content.ts         # Content script: DOM scanning and blocking
 │   ├── types.ts           # TypeScript type definitions
 │   ├── utils.ts           # Shared utilities
 │   └── options/
 │       ├── options.html   # Settings page UI
-│       ├── options.ts     # Settings page logic
+│       ├── options.ts     # Settings page logic (auto-save)
 │       └── options.css    # Settings page styles
 ├── public/
 │   ├── manifest.json      # Chrome extension manifest
@@ -186,7 +203,7 @@ toxic-blocker/
 ## Privacy & Security
 
 - **API Key Storage:** Stored in `chrome.storage.local` (device-only, never synced)
-- **Data Sent:** Only text content is sent to OpenRouter when AI filter is used
+- **Data Sent:** Only text content is sent to Groq when AI filter is enabled
 - **No Logging:** The extension does not log or store any content
 - **Open Source:** Review the code yourself
 
@@ -200,12 +217,14 @@ toxic-blocker/
 ### AI filter not working?
 1. Verify your API key is correct
 2. Click **Test API Connection** in settings
-3. Check that you have credits in your OpenRouter account
+3. Check that you have credits/quota in your Groq account
 4. Try a different model
 
 ### Content not being blocked?
-- Keywords are case-insensitive but must be exact matches
-- AI detection requires the OpenRouter API key to be configured
+- Keywords are case-insensitive but must match as substrings
+- Simplified Chinese filter requires at least 3 Chinese characters
+- AI detection requires the Groq API key to be configured
+- Minimum text length is 10 characters
 - The extension fails open (shows content) on errors
 
 ## License
