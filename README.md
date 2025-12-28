@@ -78,9 +78,9 @@ For nuanced content detection, configure the AI filter:
    - Or "political arguments", "spoilers", "negative content"
 
 4. **Select a Model:**
-   - `llama-3.3-70b-versatile` - Best accuracy (default)
-   - `llama-3.1-8b-instant` - Fastest
-   - `mixtral-8x7b-32768` - Good balance
+   - `openai/gpt-oss-120b` - Best accuracy
+   - `openai/gpt-oss-20b` - Good balance (default)
+   - `llama-3.1-8b-instant` - Cheapest/fastest
 
 5. **Click "Test API Connection"** to verify it works
 
@@ -154,13 +154,13 @@ Content Detected on Page
 
 ### Layer 2: AI Filter via Groq
 
-Groq offers generous free tier with rate limits. For heavy usage:
+Groq offers a generous free tier with rate limits.
 
 | Model | Speed | Quality |
 |-------|-------|---------|
-| `llama-3.3-70b-versatile` | Fast | Best |
-| `llama-3.1-8b-instant` | Fastest | Good |
-| `mixtral-8x7b-32768` | Fast | Good |
+| `openai/gpt-oss-120b` | 500 T/s | Best |
+| `openai/gpt-oss-20b` | 1000 T/s | Balanced |
+| `llama-3.1-8b-instant` | 560 T/s | Cheapest |
 
 **Tip:** Use keywords and Simplified Chinese filter to catch obvious content for free, and let AI handle the nuanced cases.
 

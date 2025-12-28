@@ -54,7 +54,9 @@
             <h2>Layer 2: AI Filter (Groq)</h2>
             <p class="description">
               Ultra-fast AI-powered content detection with low latency. Only runs if keyword filter passes.
-              <a href="https://console.groq.com/keys" target="_blank" class="help-link">Get Groq API key</a>
+              <br>
+              Recommend upgrading to developer plan to avoid rate limits.
+              <a href="https://console.groq.com/keys" target="_blank" class="help-link">Get API key</a>
             </p>
           </div>
           <label class="toggle">
@@ -88,8 +90,8 @@
             Model
             <a href="https://console.groq.com/docs/models" target="_blank" class="help-link">(Browse models)</a>
           </label>
-          <input type="text" id="model" placeholder="llama-3.3-70b-versatile">
-          <div class="help-text">Groq models: llama-3.3-70b-versatile (best), llama-3.1-8b-instant (fastest), mixtral-8x7b-32768</div>
+          <input type="text" id="model" placeholder="openai/gpt-oss-20b">
+          <div class="help-text">openai/gpt-oss-120b (best), openai/gpt-oss-20b (balanced), llama-3.1-8b-instant (cheapest). Copy any model ID from the models page.</div>
         </div>
 
         <button id="test-api" class="secondary-btn">Test API Connection</button>

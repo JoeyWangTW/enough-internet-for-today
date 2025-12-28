@@ -25,7 +25,7 @@ export const DEFAULT_SETTINGS: Settings = {
   simplifiedChineseFilterEnabled: false,
   aiFilterEnabled: true,
   groqApiKey: '',
-  selectedModel: 'llama-3.3-70b-versatile',
+  selectedModel: 'openai/gpt-oss-20b',
   filterDescription: 'content I want to avoid',
   allowReveal: true,
   enabledDomains: [
