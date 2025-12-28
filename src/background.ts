@@ -1,6 +1,11 @@
 import type { Settings, AnalyzeTextMessage, AnalysisResponse, AIAnalysisResult } from './types';
 import { DEFAULT_SETTINGS } from './types';
 import { getSettings } from './utils';
+import * as OpenCC from 'opencc-js';
+
+// Create converters for Chinese variant detection
+const converterS2T = OpenCC.Converter({ from: 'cn', to: 'tw' });
+const converterT2S = OpenCC.Converter({ from: 'tw', to: 'cn' });
 
 // Content filter prompt - uses user's filter description
 const FILTER_PROMPT = (text: string, filterDescription: string) => `Analyze this text and determine if it should be blocked based on the following filter criteria: "${filterDescription}"
@@ -33,6 +38,29 @@ function checkKeywordMatch(text: string, keywords: string[]): string | null {
     }
   }
   return null;
+}
+
+/**
+ * Layer 1: Detect if text is primarily Simplified Chinese
+ * Compares character differences when converting to/from Traditional Chinese
+ */
+function isSimplifiedChinese(text: string): boolean {
+  // Only check if text contains Chinese characters
+  const chineseChars = text.match(/[\u4e00-\u9fff]/g);
+  if (!chineseChars || chineseChars.length < 3) {
+    return false; // Not enough Chinese characters to determine
+  }
+
+  const s2t = converterS2T(text);
+  const t2s = converterT2S(text);
+
+  // Count character differences
+  const s2tDiff = [...text].filter((c, i) => c !== s2t[i]).length;
+  const t2sDiff = [...text].filter((c, i) => c !== t2s[i]).length;
+
+  // If converting from Simplified to Traditional changes more characters,
+  // the text is likely Simplified Chinese
+  return s2tDiff > t2sDiff && s2tDiff > 0;
 }
 
 /**
@@ -108,6 +136,19 @@ async function analyzeText(text: string): Promise<AnalysisResponse> {
       }
     } else {
       console.log('Content Filter: Keyword filter disabled, skipping');
+    }
+
+    // Layer 1b: Simplified Chinese Filter (if enabled)
+    if (settings.simplifiedChineseFilterEnabled) {
+      if (isSimplifiedChinese(text)) {
+        console.log('Content Filter: Simplified Chinese detected');
+        return {
+          shouldBlock: true,
+          matched_by: 'simplified-chinese',
+        };
+      }
+    } else {
+      console.log('Content Filter: Simplified Chinese filter disabled, skipping');
     }
 
     // Layer 2: AI Filter (if enabled and keyword filter passed)

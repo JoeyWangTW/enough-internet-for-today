@@ -3,6 +3,7 @@ export interface Settings {
   // Layer 1: Keyword Filter
   keywordFilterEnabled: boolean; // Enable/disable keyword filter
   keywords: string; // Comma-separated keywords (e.g., "hate, toxic, kill")
+  simplifiedChineseFilterEnabled: boolean; // Enable/disable simplified Chinese filter
 
   // Layer 2: AI Filter (Groq)
   aiFilterEnabled: boolean; // Enable/disable AI filter
@@ -21,6 +22,7 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = {
   keywordFilterEnabled: true,
   keywords: '',
+  simplifiedChineseFilterEnabled: false,
   aiFilterEnabled: true,
   groqApiKey: '',
   selectedModel: 'llama-3.3-70b-versatile',
@@ -35,6 +37,8 @@ export const DEFAULT_SETTINGS: Settings = {
     'www.instagram.com',
     'facebook.com',
     'www.facebook.com',
+    'threads.com',
+    'www.threads.com',
   ],
 };
 
@@ -44,7 +48,7 @@ export type ParsedKeywords = string[]; // Trimmed, lowercased keywords
 // Filter result
 export interface FilterResult {
   shouldBlock: boolean;
-  matched_by: 'keyword' | 'ai' | 'none';
+  matched_by: 'keyword' | 'simplified-chinese' | 'ai' | 'none';
   matched_keyword?: string; // If matched by keyword
 }
 
@@ -62,7 +66,7 @@ export interface AnalyzeTextMessage {
 
 export interface AnalysisResponse {
   shouldBlock: boolean;
-  matched_by: 'keyword' | 'ai' | 'none';
+  matched_by: 'keyword' | 'simplified-chinese' | 'ai' | 'none';
   matched_keyword?: string;
   error?: string; // If analysis failed
 }

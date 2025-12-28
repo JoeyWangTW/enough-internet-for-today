@@ -67,6 +67,19 @@ main {
   margin-bottom: 0;
 }
 
+.card-header.sub-filter {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+  margin-bottom: 0;
+}
+
+.card-header.sub-filter h3 {
+  font-size: 16px;
+  margin-bottom: 4px;
+  color: #2c3e50;
+}
+
 .description {
   font-size: 14px;
   color: #7f8c8d;

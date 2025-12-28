@@ -7,6 +7,7 @@ const keywordFilterEnabled = document.getElementById('keyword-filter-enabled') a
 const keywordSettings = document.getElementById('keyword-settings') as HTMLDivElement;
 const keywordsTextarea = document.getElementById('keywords') as HTMLTextAreaElement;
 const keywordCount = document.getElementById('keyword-count') as HTMLDivElement;
+const simplifiedChineseFilterEnabled = document.getElementById('simplified-chinese-filter-enabled') as HTMLInputElement;
 const aiFilterEnabled = document.getElementById('ai-filter-enabled') as HTMLInputElement;
 const aiSettings = document.getElementById('ai-settings') as HTMLDivElement;
 const filterDescriptionInput = document.getElementById('filter-description') as HTMLInputElement;
@@ -70,6 +71,9 @@ async function loadSettings(): Promise<void> {
   // Keywords
   keywordsTextarea.value = currentSettings.keywords;
   updateKeywordCount();
+
+  // Simplified Chinese filter
+  simplifiedChineseFilterEnabled.checked = currentSettings.simplifiedChineseFilterEnabled ?? DEFAULT_SETTINGS.simplifiedChineseFilterEnabled;
 
   // Filter description
   filterDescriptionInput.value = currentSettings.filterDescription || DEFAULT_SETTINGS.filterDescription;
@@ -201,6 +205,7 @@ async function handleSave(): Promise<void> {
     // Update settings with current form values
     currentSettings.keywordFilterEnabled = keywordFilterEnabled.checked;
     currentSettings.keywords = keywordsTextarea.value.trim();
+    currentSettings.simplifiedChineseFilterEnabled = simplifiedChineseFilterEnabled.checked;
     currentSettings.aiFilterEnabled = aiFilterEnabled.checked;
     currentSettings.filterDescription = filterDescriptionInput.value.trim() || DEFAULT_SETTINGS.filterDescription;
     currentSettings.groqApiKey = groqKeyInput.value.trim();
