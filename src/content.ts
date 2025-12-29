@@ -13,28 +13,26 @@ const processingElements = new WeakSet<Element>();
 // Set to track elements that have been processed
 const processedElements = new WeakSet<Element>();
 
-// CSS class for placeholder styling
-const PLACEHOLDER_CLASS = 'toxic-blocker-placeholder';
-const BLOCKED_CLASS = 'toxic-blocker-blocked';
+// CSS class for styling states
+const ANALYZING_CLASS = 'toxic-blocker-analyzing';
+const HIDDEN_CLASS = 'toxic-blocker-hidden';
+const BLOCKED_WRAPPER_CLASS = 'toxic-blocker-blocked-wrapper';
 
 const PLACEHOLDER_STYLES = `
-  .${PLACEHOLDER_CLASS} {
+  .${ANALYZING_CLASS} {
+    opacity: 0.3 !important;
+    pointer-events: none !important;
+    transition: opacity 0.2s ease !important;
+  }
+  .${HIDDEN_CLASS} {
+    display: none !important;
+  }
+  .${BLOCKED_WRAPPER_CLASS} {
     color: #999 !important;
     font-style: italic !important;
-    background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%) !important;
-    background-size: 200% 100% !important;
-    animation: toxic-blocker-shimmer 1.5s infinite !important;
-    border-radius: 3px !important;
+    padding: 4px 0 !important;
   }
-  @keyframes toxic-blocker-shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-  }
-  .${BLOCKED_CLASS} {
-    color: #999 !important;
-    font-style: italic !important;
-  }
-  .${BLOCKED_CLASS} button {
+  .${BLOCKED_WRAPPER_CLASS} button {
     margin-left: 6px !important;
     padding: 1px 6px !important;
     background: transparent !important;
@@ -45,7 +43,7 @@ const PLACEHOLDER_STYLES = `
     color: #999 !important;
     font-style: normal !important;
   }
-  .${BLOCKED_CLASS} button:hover {
+  .${BLOCKED_WRAPPER_CLASS} button:hover {
     border-color: #999 !important;
     color: #666 !important;
   }
@@ -147,8 +145,9 @@ function shouldSkipElement(element: Element): boolean {
   
   // Skip elements created by our extension
   if (element.id?.startsWith('toxic-blocker')) return true;
-  if (element.classList?.contains(PLACEHOLDER_CLASS)) return true;
-  if (element.classList?.contains(BLOCKED_CLASS)) return true;
+  if (element.classList?.contains(ANALYZING_CLASS)) return true;
+  if (element.classList?.contains(HIDDEN_CLASS)) return true;
+  if (element.classList?.contains(BLOCKED_WRAPPER_CLASS)) return true;
   
   // Skip if already processed or processing
   if (processedElements.has(element)) return true;
@@ -239,61 +238,49 @@ async function analyzeElement(element: Element): Promise<void> {
     processedElements.add(element);
     return;
   }
-  
+
   analyzedTexts.add(textHash);
   processingElements.add(element);
 
-  // Store original content
-  const originalHTML = element.innerHTML;
-  const originalText = element.textContent || '';
-
   console.log('Content Filter: Analyzing:', text.substring(0, 60) + (text.length > 60 ? '...' : ''));
 
-  // Show placeholder while analyzing
-  element.classList.add(PLACEHOLDER_CLASS);
-  const originalDisplay = (element as HTMLElement).style.display;
-  element.textContent = '...';
+  // Dim element while analyzing - DO NOT modify content
+  element.classList.add(ANALYZING_CLASS);
 
   try {
     const message: AnalyzeTextMessage = {
       action: 'analyzeText',
-      text: originalText,
+      text: text,
       textHash,
     };
 
     const response: AnalysisResponse = await chrome.runtime.sendMessage(message);
-    
+
     console.log('Content Filter: Result:', response);
     analyzedCount++;
 
-    // Remove placeholder class
-    element.classList.remove(PLACEHOLDER_CLASS);
+    // Remove analyzing class
+    element.classList.remove(ANALYZING_CLASS);
 
     if (response.error) {
       console.error('Content Filter: Error:', response.error);
       showDebugIndicator(`Error: ${response.error}`, true);
-      // Restore original content on error
-      element.innerHTML = originalHTML;
-      (element as HTMLElement).style.display = originalDisplay;
+      // Element is untouched, just remove analyzing state
     } else if (response.shouldBlock) {
-      // Block matching content
+      // Block matching content - hide and wrap
       blockedCount++;
       console.log('Content Filter: BLOCKING matching content');
-      showBlockedContent(element, originalHTML, originalDisplay);
+      showBlockedContent(element);
       showDebugIndicator(`Blocked ${blockedCount} items`);
     } else {
-      // Restore original content - it's safe
-      element.innerHTML = originalHTML;
-      (element as HTMLElement).style.display = originalDisplay;
+      // Content is safe - element was never modified, just remove analyzing state
       showDebugIndicator(`Analyzed ${analyzedCount} items (${blockedCount} blocked)`);
     }
   } catch (error) {
     console.error('Content Filter: Error:', error);
     showDebugIndicator(`Error: ${String(error)}`, true);
-    // Restore on error
-    element.classList.remove(PLACEHOLDER_CLASS);
-    element.innerHTML = originalHTML;
-    (element as HTMLElement).style.display = originalDisplay;
+    // Remove analyzing state on error
+    element.classList.remove(ANALYZING_CLASS);
   } finally {
     processingElements.delete(element);
     processedElements.add(element);
@@ -301,28 +288,38 @@ async function analyzeElement(element: Element): Promise<void> {
 }
 
 /**
- * Show blocked content placeholder
+ * Show blocked content placeholder - wraps element instead of replacing content
  */
-function showBlockedContent(element: Element, originalHTML: string, originalDisplay: string): void {
-  element.classList.add(BLOCKED_CLASS);
-
+function showBlockedContent(element: Element): void {
   const allowReveal = cachedSettings?.allowReveal ?? true;
 
-  if (allowReveal) {
-    element.innerHTML = `<span>Blocked content</span><button data-content-reveal="true">Show</button>`;
+  // Hide the original element (don't modify its content!)
+  element.classList.add(HIDDEN_CLASS);
 
-    const revealButton = element.querySelector('[data-content-reveal]');
+  // Create a wrapper to show in its place
+  const wrapper = document.createElement('div');
+  wrapper.className = BLOCKED_WRAPPER_CLASS;
+  wrapper.setAttribute('data-toxic-blocker-wrapper', 'true');
+
+  if (allowReveal) {
+    wrapper.innerHTML = `<span>Blocked content</span><button data-content-reveal="true">Show</button>`;
+
+    const revealButton = wrapper.querySelector('[data-content-reveal]');
     if (revealButton) {
       revealButton.addEventListener('click', (e) => {
         e.stopPropagation();
-        element.classList.remove(BLOCKED_CLASS);
-        element.innerHTML = originalHTML;
-        (element as HTMLElement).style.display = originalDisplay;
+        // Show the original element (untouched!)
+        element.classList.remove(HIDDEN_CLASS);
+        // Remove the wrapper
+        wrapper.remove();
       });
     }
   } else {
-    element.innerHTML = `<span>Blocked content</span>`;
+    wrapper.innerHTML = `<span>Blocked content</span>`;
   }
+
+  // Insert wrapper before the hidden element
+  element.parentNode?.insertBefore(wrapper, element);
 }
 
 /**
