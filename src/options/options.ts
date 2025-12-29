@@ -12,6 +12,8 @@ const aiFilterEnabled = document.getElementById('ai-filter-enabled') as HTMLInpu
 const aiSettings = document.getElementById('ai-settings') as HTMLDivElement;
 const filterDescriptionInput = document.getElementById('filter-description') as HTMLInputElement;
 const groqKeyInput = document.getElementById('groq-key') as HTMLInputElement;
+const apiKeyStatus = document.getElementById('api-key-status') as HTMLSpanElement;
+const getApiKeyLink = document.getElementById('get-api-key-link') as HTMLAnchorElement;
 const modelInput = document.getElementById('model') as HTMLInputElement;
 const testApiButton = document.getElementById('test-api') as HTMLButtonElement;
 const apiStatus = document.getElementById('api-status') as HTMLSpanElement;
@@ -61,6 +63,23 @@ function updateKeywordCount(): void {
 }
 
 /**
+ * Update API key status display
+ */
+function updateApiKeyStatus(): void {
+  const hasApiKey = groqKeyInput.value.trim().length > 0;
+
+  if (hasApiKey) {
+    apiKeyStatus.textContent = 'API key configured';
+    apiKeyStatus.classList.add('configured');
+    getApiKeyLink.style.display = 'none';
+  } else {
+    apiKeyStatus.textContent = 'No API key configured.';
+    apiKeyStatus.classList.remove('configured');
+    getApiKeyLink.style.display = 'inline';
+  }
+}
+
+/**
  * Load settings from storage and populate UI
  */
 async function loadSettings(): Promise<void> {
@@ -83,6 +102,7 @@ async function loadSettings(): Promise<void> {
 
   // Groq API key
   groqKeyInput.value = currentSettings.groqApiKey || '';
+  updateApiKeyStatus();
 
   // Model (free-form text input)
   modelInput.value = currentSettings.selectedModel || DEFAULT_SETTINGS.selectedModel;
@@ -147,19 +167,59 @@ function removeDomain(domain: string): void {
 }
 
 /**
+ * Show API test result message
+ */
+function showApiTestResult(message: string, type: 'success' | 'error' | 'testing'): void {
+  apiStatus.textContent = message;
+  apiStatus.className = `api-test-result ${type}`;
+}
+
+/**
+ * Parse error message from API response
+ */
+function parseApiError(error: string): string {
+  const lowerError = error.toLowerCase();
+
+  if (lowerError.includes('401') || lowerError.includes('unauthorized') || lowerError.includes('invalid api key')) {
+    return 'Invalid API key';
+  }
+  if (lowerError.includes('429') || lowerError.includes('rate limit')) {
+    return 'Rate limit exceeded - try again later';
+  }
+  if (lowerError.includes('403') || lowerError.includes('forbidden')) {
+    return 'Access forbidden - check API key permissions';
+  }
+  if (lowerError.includes('404') || lowerError.includes('not found')) {
+    return 'Model not found - check model name';
+  }
+  if (lowerError.includes('500') || lowerError.includes('internal server')) {
+    return 'Groq server error - try again later';
+  }
+  if (lowerError.includes('network') || lowerError.includes('fetch')) {
+    return 'Network error - check your connection';
+  }
+  if (lowerError.includes('timeout')) {
+    return 'Request timed out - try again';
+  }
+
+  // Return original error if no match, but truncate if too long
+  return error.length > 50 ? error.substring(0, 47) + '...' : error;
+}
+
+/**
  * Test the Groq API connection
  */
 async function testApi(): Promise<void> {
   const apiKey = groqKeyInput.value.trim();
 
   if (!apiKey) {
-    showSaveStatus('Please enter a Groq API key', 'error');
+    showApiTestResult('Enter an API key first', 'error');
     return;
   }
 
   testApiButton.disabled = true;
   testApiButton.textContent = 'Testing...';
-  apiStatus.className = 'status-icon';
+  showApiTestResult('Testing connection...', 'testing');
 
   try {
     // Temporarily save settings to test
@@ -182,15 +242,12 @@ async function testApi(): Promise<void> {
     const response = await chrome.runtime.sendMessage(message);
 
     if (response.error) {
-      showSaveStatus(`API test failed: ${response.error}`, 'error');
-      apiStatus.className = 'status-icon invalid';
+      showApiTestResult(parseApiError(response.error), 'error');
     } else {
-      showSaveStatus('API test successful!', 'success');
-      apiStatus.className = 'status-icon valid';
+      showApiTestResult('API connected successfully', 'success');
     }
   } catch (error) {
-    showSaveStatus(`API test error: ${String(error)}`, 'error');
-    apiStatus.className = 'status-icon invalid';
+    showApiTestResult(parseApiError(String(error)), 'error');
   } finally {
     testApiButton.disabled = false;
     testApiButton.textContent = 'Test API Connection';
@@ -269,7 +326,10 @@ keywordsTextarea.addEventListener('input', () => {
   autoSave();
 });
 filterDescriptionInput.addEventListener('input', () => autoSave());
-groqKeyInput.addEventListener('input', () => autoSave());
+groqKeyInput.addEventListener('input', () => {
+  updateApiKeyStatus();
+  autoSave();
+});
 modelInput.addEventListener('input', () => autoSave());
 
 // Domain management
@@ -284,5 +344,36 @@ testApiButton.addEventListener('click', testApi);
 // Hide save button since we auto-save
 saveButton.style.display = 'none';
 
+// Handle hash navigation (e.g., #ai-filter)
+function handleHashNavigation(): void {
+  const hash = window.location.hash;
+  if (!hash) return;
+
+  const targetId = hash.slice(1); // Remove #
+  const targetElement = document.getElementById(targetId);
+
+  if (targetElement) {
+    // Wait for page to load, then scroll and highlight
+    setTimeout(() => {
+      targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      // Add highlight effect
+      targetElement.style.transition = 'box-shadow 0.3s ease';
+      targetElement.style.boxShadow = '0 0 0 3px #3498db';
+
+      // Remove highlight after 2 seconds
+      setTimeout(() => {
+        targetElement.style.boxShadow = '';
+      }, 2000);
+
+      // Focus the API key input if navigating to AI filter section
+      if (targetId === 'ai-filter') {
+        groqKeyInput.focus();
+      }
+    }, 100);
+  }
+}
+
 // Initialize
 loadSettings();
+handleHashNavigation();

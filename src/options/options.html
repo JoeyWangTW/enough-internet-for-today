@@ -48,7 +48,7 @@
       </section>
 
       <!-- Layer 2: AI Filter (Groq) -->
-      <section class="card">
+      <section class="card" id="ai-filter">
         <div class="card-header">
           <div>
             <h2>Layer 2: AI Filter (Groq)</h2>
@@ -78,11 +78,11 @@
           <label for="groq-key">
             Groq API Key
           </label>
-          <div class="input-with-status">
-            <input type="password" id="groq-key" placeholder="gsk_...">
-            <span class="status-icon" id="api-status"></span>
+          <input type="password" id="groq-key" placeholder="gsk_...">
+          <div class="help-text" id="api-key-help">
+            <span id="api-key-status">No API key configured.</span>
+            <a href="https://console.groq.com/keys" target="_blank" id="get-api-key-link">Get API key</a>
           </div>
-          <div class="help-text">Leave empty to use keyword filtering only (no AI costs)</div>
         </div>
 
         <div class="form-group">
@@ -94,7 +94,10 @@
           <div class="help-text">openai/gpt-oss-120b (best), openai/gpt-oss-20b (balanced), llama-3.1-8b-instant (cheapest). Copy any model ID from the models page.</div>
         </div>
 
-        <button id="test-api" class="secondary-btn">Test API Connection</button>
+        <div class="button-with-status">
+          <button id="test-api" class="secondary-btn">Test API Connection</button>
+          <span class="api-test-result" id="api-status"></span>
+        </div>
         </div>
       </section>
 

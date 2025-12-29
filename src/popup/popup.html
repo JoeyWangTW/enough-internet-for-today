@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enough Internet for Today</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <header>
+      <h1>Enough Internet for Today</h1>
+      <div id="site-status" class="site-status">
+        <span class="status-dot"></span>
+        <span class="status-text">Checking...</span>
+      </div>
+    </header>
+
+    <main>
+      <!-- Quick Toggles -->
+      <section class="filter-section">
+        <!-- Keyword Filter -->
+        <div class="filter-group">
+          <div class="filter-row">
+            <div class="filter-info">
+              <span class="filter-name">Keyword Filter</span>
+              <span class="filter-desc" id="keyword-count">0 keywords</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="keyword-filter-enabled">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="filter-settings" id="keyword-settings">
+            <textarea id="keywords" placeholder="Enter keywords separated by commas (e.g., hate, toxic, spam)"></textarea>
+          </div>
+        </div>
+
+        <!-- Simplified Chinese -->
+        <div class="filter-row">
+          <div class="filter-info">
+            <span class="filter-name">Block Simplified Chinese</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="simplified-chinese-filter-enabled">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+
+        <!-- AI Filter -->
+        <div class="filter-group">
+          <div class="filter-row">
+            <div class="filter-info">
+              <span class="filter-name">AI Filter (Groq)</span>
+              <span class="filter-desc" id="ai-status">Not configured</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="ai-filter-enabled">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="filter-settings" id="ai-settings">
+            <input type="text" id="filter-description" placeholder="What to block (e.g., toxic content, political posts)">
+            <div class="api-key-notice" id="api-key-notice">
+              <span>API key required</span>
+              <button id="setup-api-key" class="link-btn">Set up now</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Allow Reveal -->
+        <div class="filter-row">
+          <div class="filter-info">
+            <span class="filter-name">Allow Reveal</span>
+            <span class="filter-desc">Show button on blocked content</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="allow-reveal">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Current Site Toggle -->
+      <section class="site-section" id="site-toggle-section">
+        <div class="filter-row site-row">
+          <div class="filter-info">
+            <span class="filter-name" id="current-domain">Current site</span>
+          </div>
+          <button id="toggle-site" class="site-btn">Enable</button>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <button id="open-settings" class="settings-link">
+        Open Full Settings
+      </button>
+    </footer>
+  </div>
+
+  <script type="module" src="popup.ts"></script>
+</body>
+</html>
