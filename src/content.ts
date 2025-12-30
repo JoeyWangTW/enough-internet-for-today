@@ -20,9 +20,10 @@ const BLOCKED_WRAPPER_CLASS = 'toxic-blocker-blocked-wrapper';
 
 const PLACEHOLDER_STYLES = `
   .${ANALYZING_CLASS} {
-    opacity: 0.3 !important;
+    filter: blur(8px) !important;
+    user-select: none !important;
     pointer-events: none !important;
-    transition: opacity 0.2s ease !important;
+    transition: filter 0.2s ease !important;
   }
   .${HIDDEN_CLASS} {
     display: none !important;
