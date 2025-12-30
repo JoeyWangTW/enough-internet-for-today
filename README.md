@@ -99,6 +99,8 @@ The extension only runs on websites in this list. By default:
 
 ## How It Works
 
+### Filtering Flow
+
 ```
 Content Detected on Page
          │
@@ -145,6 +147,54 @@ Content Detected on Page
                            ▼           ▼
                         [BLOCK]     [SHOW]
 ```
+
+### DOM Preservation (CSS-Only Approach)
+
+The extension uses a **non-destructive CSS-only approach** to hide content. This preserves all interactive elements (like Facebook's "See More" buttons, reactions, reply buttons, etc.) so they continue to work when content is revealed.
+
+#### How Content Is Hidden
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ANALYZING STATE                                             │
+│                                                             │
+│   Original element dims (opacity: 0.3)                      │
+│   ┌─────────────────────────────────────┐                   │
+│   │ Post content... [See More] [👍 Like]│  ← All buttons    │
+│   └─────────────────────────────────────┘    still exist!   │
+│                                                             │
+│   • Element is NOT modified                                 │
+│   • Just a CSS class added for visual dimming               │
+│   • User cannot interact during analysis                    │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ BLOCKED STATE                                               │
+│                                                             │
+│   Wrapper inserted    ┌─────────────────────┐               │
+│   before element  →   │ Blocked content [Show] │            │
+│                       └─────────────────────┘               │
+│   Original hidden     ┌─────────────────────────────────────┐
+│   (display: none) →   │ Post content... [See More] [👍 Like]│
+│                       └─────────────────────────────────────┘
+│                                                             │
+│   • Original DOM is HIDDEN, not modified                    │
+│   • All child elements preserved intact                     │
+│   • Click "Show" → wrapper removed, original unhidden       │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Why This Matters
+
+| Traditional Approach | Our CSS-Only Approach |
+|---------------------|----------------------|
+| `element.innerHTML = "Blocked"` | `element.classList.add("hidden")` |
+| Destroys child nodes | Preserves everything |
+| Breaks "See More" buttons | Buttons still work |
+| Loses event listeners | Event listeners intact |
+| Can't fully restore | Perfect restoration |
+
+When you click "Show" to reveal blocked content, you get the **exact original element** with all its interactive features working perfectly.
 
 ## Cost Estimates
 
