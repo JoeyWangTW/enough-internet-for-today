@@ -277,6 +277,46 @@ enough-internet-for-today/
 - Minimum text length is 10 characters
 - The extension fails open (shows content) on errors
 
+## Future Work
+
+### Improved Site-Specific Detection
+
+The current element detection uses generic CSS selectors that work across most sites, but could be optimized for specific platforms. Future improvements could include:
+- Platform-specific selectors for better accuracy (Twitter, Facebook, Reddit, etc.)
+- Smarter detection of content boundaries
+- Handling of dynamically loaded content and infinite scroll
+
+### Context-Aware Filtering
+
+Currently, each text element is analyzed in isolation. This misses important context:
+- A reply might reference content from a parent post
+- Thread context could change the meaning of individual messages
+- Comments sections often have context that spans multiple elements
+
+Future versions could analyze content in context by considering surrounding elements, parent/child relationships, and conversation threads.
+
+### Image and Video Content
+
+Text is only part of the story. Toxic or unwanted content often appears in:
+- Images with text overlays or memes
+- Video content and thumbnails
+- Screenshots of conversations
+
+Multimodal AI models could analyze visual content alongside text for more comprehensive filtering.
+
+### Local Model for Privacy and Cost
+
+The current AI filter uses Groq's API, which is fast but involves:
+- Sending content to external servers
+- Potential API costs at scale
+- Dependency on internet connection
+
+A future approach could fine-tune a small, efficient model that runs entirely in the browser using WebGPU or WebAssembly. This would provide:
+- Complete privacy (no data leaves your device)
+- Zero API costs
+- Offline functionality
+- Faster response times
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details.
